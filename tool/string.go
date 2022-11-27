@@ -1,7 +1,7 @@
 package tool
 
 import (
-    "caijw/library/crypt/md5"
+    "github.com/caijw-go/library/crypt/md5"
     "github.com/gofrs/uuid"
 )
 

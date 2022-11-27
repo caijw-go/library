@@ -1,7 +1,7 @@
 package tool
 
 import (
-    "caijw/library/consts"
+    "github.com/caijw-go/library/consts"
     "time"
 )
 
