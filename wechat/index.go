@@ -1,0 +1,25 @@
+package wechat
+
+import (
+    "sync"
+)
+
+const domain = "https://api.weixin.qq.com"
+
+var once sync.Once
+var config Config
+
+type Config struct {
+    Appid  string
+    Secret string
+}
+
+func Init(conf Config) {
+    once.Do(func() {
+        config = conf
+    })
+}
+
+func getAppid() string {
+    return config.Appid
+}
