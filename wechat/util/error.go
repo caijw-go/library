@@ -6,7 +6,7 @@ type CommonError struct {
 }
 
 func (e *CommonError) IsError() bool {
-    return e.ErrCode == 0
+    return e != nil && e.ErrCode != 0
 }
 
 //NewError 主动构建一个错误，主动都是有error错误的
