@@ -4,6 +4,7 @@ import (
     "encoding/json"
     "fmt"
     "github.com/caijw-go/library/wechat/util"
+    "github.com/gin-gonic/gin"
     "github.com/imroc/req"
 )
 
@@ -57,9 +58,7 @@ func GetPhoneNumber(code string) *getPhoneNumberResp {
             CommonError: commonError,
         }
     }
-    resp, err := req.Post(fmt.Sprintf(getPhoneNumberUrl, accessToken), req.Param{
-        "code": code,
-    })
+    resp, err := req.Post(fmt.Sprintf(getPhoneNumberUrl, accessToken), req.BodyJSON(gin.H{"code": code}))
     result := &getPhoneNumberResp{}
     if err = json.Unmarshal(resp.Bytes(), &result); err != nil {
         return &getPhoneNumberResp{
