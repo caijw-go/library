@@ -43,7 +43,7 @@ func JsCodeToSession(code string) *jsCodeToSessionResp {
 type phoneInfo struct {
     PhoneNumber     string `json:"phoneNumber"`
     PurePhoneNumber string `json:"purePhoneNumber"`
-    CountryCode     uint   `json:"countryCode"`
+    CountryCode     string `json:"countryCode"`
 }
 type getPhoneNumberResp struct {
     *util.CommonError
