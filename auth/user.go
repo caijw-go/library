@@ -53,9 +53,12 @@ func Middleware() gin.HandlerFunc {
 
 //Login 登录
 func Login(userUniqId string) (string, error) {
+    if userUniqId == "" {
+        return "", errors.New("auth login userUniqId is nil")
+    }
     token := tool.GenUUID()
     if err := base.Redis(config.RedisName).Set(fmt.Sprintf(config.RedisKey, token), userUniqId, config.RedisTtl).Err(); err != nil {
-        return "", errors.New("adminUserLogin redis.Set error" + err.Error())
+        return "", errors.New("auth login redis.Set error" + err.Error())
     }
     return token, nil
 }
