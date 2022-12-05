@@ -50,7 +50,7 @@ type getPhoneNumberResp struct {
     PhoneInfo phoneInfo `json:"phone_info"`
 }
 
-func getPhoneNumber(code string) *getPhoneNumberResp {
+func GetPhoneNumber(code string) *getPhoneNumberResp {
     accessToken, commonError := getAccessToken()
     if commonError != nil {
         return &getPhoneNumberResp{
