@@ -10,8 +10,10 @@ var once sync.Once
 var config Config
 
 type Config struct {
-    Appid  string
-    Secret string
+    Appid                string
+    Secret               string
+    AccessTokenRedisName string
+    AccessTokenRedisKey  string
 }
 
 func Init(conf Config) {

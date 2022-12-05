@@ -2,11 +2,13 @@ package wechat
 
 import (
     "encoding/json"
+    "fmt"
     "github.com/caijw-go/library/wechat/util"
     "github.com/imroc/req"
 )
 
 const jsCodeToSessionUrl = domain + "/sns/jscode2session"
+const getPhoneNumberUrl = domain + "/wxa/business/getuserphonenumber?access_token=%s"
 
 type jsCodeToSessionResp struct {
     *util.CommonError
@@ -31,6 +33,36 @@ func JsCodeToSession(code string) *jsCodeToSessionResp {
     result := &jsCodeToSessionResp{}
     if err = json.Unmarshal(resp.Bytes(), &result); err != nil {
         return &jsCodeToSessionResp{
+            CommonError: util.NewError(500, "json unmarshal error", err),
+        }
+    }
+    return result
+}
+
+type phoneInfo struct {
+    PhoneNumber     string `json:"phoneNumber"`
+    PurePhoneNumber string `json:"purePhoneNumber"`
+    CountryCode     uint   `json:"countryCode"`
+}
+type getPhoneNumberResp struct {
+    *util.CommonError
+
+    PhoneInfo phoneInfo `json:"phone_info"`
+}
+
+func getPhoneNumber(code string) *getPhoneNumberResp {
+    accessToken, commonError := getAccessToken()
+    if commonError != nil {
+        return &getPhoneNumberResp{
+            CommonError: commonError,
+        }
+    }
+    resp, err := req.Post(fmt.Sprintf(getPhoneNumberUrl, accessToken), req.Param{
+        "code": code,
+    })
+    result := &getPhoneNumberResp{}
+    if err = json.Unmarshal(resp.Bytes(), &result); err != nil {
+        return &getPhoneNumberResp{
             CommonError: util.NewError(500, "json unmarshal error", err),
         }
     }
