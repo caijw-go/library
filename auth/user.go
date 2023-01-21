@@ -1,6 +1,7 @@
 package auth
 
 import (
+    "encoding/json"
     "errors"
     "fmt"
     "github.com/caijw-go/library/base"
@@ -12,8 +13,7 @@ import (
 
 const contextUserKey = "loggedUser"
 
-// getTokenFromHeader 从请求头中获得token
-func getTokenFromHeader(c *gin.Context) (string, error) {
+func getTokenFromHeader(c *gin.Context) (string, error) { //从请求头中获得token
     header := c.GetHeader("Authorization")
     tmp := strings.Split(header, " ")
     if len(tmp) != 2 || tmp[0] != "Basic" || len(tmp[1]) != 32 {
@@ -22,55 +22,65 @@ func getTokenFromHeader(c *gin.Context) (string, error) {
     return tmp[1], nil
 }
 
-// resolveUserUniqId 通过token解析出用户唯一id，这个唯一id是字符串，格式由调用者自行组织
-func resolveUserUniqId(token string) (string, error) {
-    if len(token) != 32 {
-        return "", errors.New("resolveUserUniqId token error")
-    }
-    bytes, err := base.Redis(config.RedisName).Get(fmt.Sprintf(config.RedisKey, token)).Bytes()
+func saveUser[T any](token string, u T) error { //将用户信息保存到redis里
+    str, err := json.Marshal(u)
     if err != nil {
-        return "", errors.New("resolveUserUniqId redis get error" + err.Error())
+        return err
     }
-    return string(bytes), nil
+    if err := base.Redis(config.RedisName).Set(fmt.Sprintf(config.RedisKey, token), str, config.RedisTtl).Err(); err != nil {
+        return err
+    }
+    return nil
 }
 
-func Middleware() gin.HandlerFunc {
+func Middleware[T any]() gin.HandlerFunc { //校验登录中间件
     return func(c *gin.Context) {
         token, err := getTokenFromHeader(c)
         if err != nil {
             c.AbortWithStatus(http.StatusUnauthorized)
             return
         }
-        if userUniqId, err := resolveUserUniqId(token); err != nil {
+        bytes, err := base.Redis(config.RedisName).Get(fmt.Sprintf(config.RedisKey, token)).Bytes()
+        if err != nil {
             c.AbortWithStatus(http.StatusUnauthorized)
             return
-        } else {
-            c.Set(contextUserKey, userUniqId)
-            c.Next()
         }
+        var u T
+        if err = json.Unmarshal(bytes, &u); err != nil {
+            c.AbortWithStatus(http.StatusUnauthorized)
+            return
+        }
+        c.Set(contextUserKey, u)
+        c.Next()
     }
 }
 
-//Login 登录
-func Login(userUniqId string) (string, error) {
-    if userUniqId == "" {
-        return "", errors.New("auth login userUniqId is nil")
+func Change[T any](c *gin.Context, u T) error { //修改用户信息，用户在登录过程中如果有需要修改的数据，需要进行修改
+    token, err := getTokenFromHeader(c)
+    if err != nil {
+        return err
     }
+    if err = saveUser[T](token, u); err != nil {
+        return err
+    }
+    c.Set(contextUserKey, u)
+    return nil
+}
+
+func Login[T any](u T) (string, error) { //登录
     token := tool.GenUUID()
-    if err := base.Redis(config.RedisName).Set(fmt.Sprintf(config.RedisKey, token), userUniqId, config.RedisTtl).Err(); err != nil {
-        return "", errors.New("auth login redis.Set error" + err.Error())
+    if err := saveUser[T](token, u); err != nil {
+        return "", err
     }
     return token, nil
 }
 
-//GetUserUniqId 从Context中取出UserUniqId
-func GetUserUniqId(c *gin.Context) string {
-    uniqId, _ := c.Get(contextUserKey)
-    return uniqId.(string)
+func GetUser[T any](c *gin.Context) T { //从Context中取出User
+    u, _ := c.Get(contextUserKey)
+    return u.(T)
 }
 
-//Logout 退出登录
-func Logout(c *gin.Context) bool {
+func Logout(c *gin.Context) bool { //退出登录
     token, err := getTokenFromHeader(c)
     if err != nil {
         return false
