@@ -44,7 +44,7 @@ func (t *content) ToString() string {
 
 // Init 初始化文件类日志系统
 func Init(logPath string) error {
-    newName := fmt.Sprintf("%s/%s.json", path.Dir(logPath), time.Now().Format(consts.DateFormat))
+    newName := fmt.Sprintf("%s/%s.json", path.Dir(logPath), time.Now().Format(consts.TimeFormatDate))
 
     //log ready
     if _currentFile != nil {

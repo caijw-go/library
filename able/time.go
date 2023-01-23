@@ -55,7 +55,7 @@ func (t jsonTime) Value() (driver.Value, error) {
 }
 
 func (t *jsonDate) UnmarshalJSON(data []byte) (err error) {
-    now, err := time.ParseInLocation(`"`+consts.DateFormat+`"`, string(data), time.Local)
+    now, err := time.ParseInLocation(`"`+consts.TimeFormatDate+`"`, string(data), time.Local)
     *t = jsonDate(now)
     return
 }
@@ -65,15 +65,15 @@ func (t jsonDate) MarshalJSON() ([]byte, error) {
     if &tt == nil || tt.IsZero() {
         return []byte("null"), nil
     }
-    b := make([]byte, 0, len(consts.DateFormat)+2)
+    b := make([]byte, 0, len(consts.TimeFormatDate)+2)
     b = append(b, '"')
-    b = tt.AppendFormat(b, consts.DateFormat)
+    b = tt.AppendFormat(b, consts.TimeFormatDate)
     b = append(b, '"')
     return b, nil
 }
 
 func (t jsonDate) String() string {
-    return time.Time(t).Format(consts.DateFormat)
+    return time.Time(t).Format(consts.TimeFormatDate)
 }
 
 func (t jsonDate) Value() (driver.Value, error) {

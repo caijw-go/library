@@ -19,8 +19,8 @@ func (t *GormTime) UnmarshalJSON(data []byte) (err error) {
 
 func (t GormTime) MarshalJSON() ([]byte, error) {
     tt := time.Time(t)
-    if &t==nil || tt.IsZero() {
-        return []byte("null"),nil
+    if &t == nil || tt.IsZero() {
+        return []byte("null"), nil
     }
     b := make([]byte, 0, len(consts.TimeFormat)+2)
     b = append(b, '"')
@@ -40,21 +40,21 @@ func (t GormTime) Value() (driver.Value, error) {
 type GormDate time.Time
 
 func (t *GormDate) UnmarshalJSON(data []byte) (err error) {
-    now, err := time.ParseInLocation(`"`+consts.DateFormat+`"`, string(data), time.Local)
+    now, err := time.ParseInLocation(`"`+consts.TimeFormatDate+`"`, string(data), time.Local)
     *t = GormDate(now)
     return
 }
 
 func (t GormDate) MarshalJSON() ([]byte, error) {
-    b := make([]byte, 0, len(consts.DateFormat)+2)
+    b := make([]byte, 0, len(consts.TimeFormatDate)+2)
     b = append(b, '"')
-    b = time.Time(t).AppendFormat(b, consts.DateFormat)
+    b = time.Time(t).AppendFormat(b, consts.TimeFormatDate)
     b = append(b, '"')
     return b, nil
 }
 
 func (t GormDate) String() string {
-    return time.Time(t).Format(consts.DateFormat)
+    return time.Time(t).Format(consts.TimeFormatDate)
 }
 
 func (t GormDate) Value() (driver.Value, error) {
