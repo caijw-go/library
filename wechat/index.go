@@ -22,6 +22,6 @@ func Init(conf Config) {
     })
 }
 
-func getAppid() string {
+func GetAppid() string {
     return config.Appid
 }
