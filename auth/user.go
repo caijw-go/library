@@ -97,6 +97,10 @@ func Logout(c *gin.Context) bool { //退出登录
     if err != nil {
         return false
     }
-    base.Redis(config.RedisName).Del(fmt.Sprintf(config.RedisKey, token))
+    RemoveToken(token)
     return true
+}
+
+func RemoveToken(token string) {
+    base.Redis(config.RedisName).Del(fmt.Sprintf(config.RedisKey, token))
 }
