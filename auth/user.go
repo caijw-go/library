@@ -33,6 +33,23 @@ func saveUser[T any](token string, u T) error { //将用户信息保存到redis�
     return nil
 }
 
+func GetUserByToken[T any](token string, expireWhenExist bool) (T, error) {
+    bytes, err := base.Redis(config.RedisName).Get(fmt.Sprintf(config.RedisKey, token)).Bytes()
+    if err != nil {
+        return nil, err
+    }
+    var u T
+    if err = json.Unmarshal(bytes, &u); err != nil {
+        return nil, err
+    }
+    if expireWhenExist {
+        if err = base.Redis(config.RedisName).Expire(fmt.Sprintf(config.RedisKey, token), config.RedisTtl).Err(); err != nil {
+            return nil, err
+        }
+    }
+    return u, nil
+}
+
 func Middleware[T any]() gin.HandlerFunc { //校验登录中间件
     return func(c *gin.Context) {
         token, err := getTokenFromHeader(c)
@@ -40,31 +57,14 @@ func Middleware[T any]() gin.HandlerFunc { //校验登录中间件
             c.AbortWithStatus(http.StatusUnauthorized)
             return
         }
-        bytes, err := base.Redis(config.RedisName).Get(fmt.Sprintf(config.RedisKey, token)).Bytes()
+        u, err := GetUserByToken[T](token, false)
         if err != nil {
-            c.AbortWithStatus(http.StatusUnauthorized)
-            return
-        }
-        var u T
-        if err = json.Unmarshal(bytes, &u); err != nil {
             c.AbortWithStatus(http.StatusUnauthorized)
             return
         }
         c.Set(contextUserKey, u)
         c.Next()
     }
-}
-
-func Change[T any](c *gin.Context, u T) error { //修改用户信息，用户在登录过程中如果有需要修改的数据，需要进行修改
-    token, err := getTokenFromHeader(c)
-    if err != nil {
-        return err
-    }
-    if err = saveUser[T](token, u); err != nil {
-        return err
-    }
-    c.Set(contextUserKey, u)
-    return nil
 }
 
 func Login[T any](u T) (string, error) { //登录
@@ -78,6 +78,18 @@ func Login[T any](u T) (string, error) { //登录
 func GetUser[T any](c *gin.Context) T { //从Context中取出User
     u, _ := c.Get(contextUserKey)
     return u.(T)
+}
+
+func Change[T any](c *gin.Context, u T) error { //修改用户信息，用户在登录过程中如果有需要修改的数据，需要进行修改
+    token, err := getTokenFromHeader(c)
+    if err != nil {
+        return err
+    }
+    if err = saveUser[T](token, u); err != nil {
+        return err
+    }
+    c.Set(contextUserKey, u)
+    return nil
 }
 
 func Logout(c *gin.Context) bool { //退出登录
