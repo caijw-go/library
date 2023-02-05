@@ -14,11 +14,15 @@ type Config struct {
     Secret               string
     AccessTokenRedisName string
     AccessTokenRedisKey  string
+    PayConfig            *PayConfig
 }
 
 func Init(conf Config) {
     once.Do(func() {
         config = conf
+        if conf.PayConfig != nil {
+            initPay(conf.PayConfig)
+        }
     })
 }
 
