@@ -34,17 +34,18 @@ func saveUser[T any](token string, u T) error { //将用户信息保存到redis�
 }
 
 func GetUserByToken[T any](token string, expireWhenExist bool) (T, error) {
+    var u T
     bytes, err := base.Redis(config.RedisName).Get(fmt.Sprintf(config.RedisKey, token)).Bytes()
     if err != nil {
-        return nil, err
+        return u, err
     }
-    var u T
+
     if err = json.Unmarshal(bytes, &u); err != nil {
-        return nil, err
+        return u, err
     }
     if expireWhenExist {
         if err = base.Redis(config.RedisName).Expire(fmt.Sprintf(config.RedisKey, token), config.RedisTtl).Err(); err != nil {
-            return nil, err
+            return u, err
         }
     }
     return u, nil
