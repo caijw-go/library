@@ -23,7 +23,7 @@ type content struct { //FlowID后期再考虑要不要加上
     //FlowID  string
     Level string
     Msg   string
-    Ext   interface{}
+    Ext   []interface{}
 }
 
 func (t *content) ToString() string {
@@ -87,15 +87,15 @@ SUCCESS:
 }
 
 //Info 记录本地文本类Info日志
-func Info(msg string, ext interface{}) {
+func Info(msg string, ext ...interface{}) {
     write("info", msg, ext)
 }
 
-func Error(msg string, ext interface{}) {
+func Error(msg string, ext ...interface{}) {
     write("error", msg, ext)
 }
 
-func write(level, msg string, ext interface{}) {
+func write(level, msg string, ext []interface{}) {
     str := (&content{
         Level: level,
         Msg:   msg,
