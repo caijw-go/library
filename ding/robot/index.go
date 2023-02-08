@@ -64,5 +64,8 @@ func (t *Robot) send(msgType string, data gin.H) {
         },
     }
     requestData[msgType] = data
-    req.Post(t.Url, req.BodyJSON(requestData)) //忽略报错
+    _, err := req.Post(t.Url, req.BodyJSON(requestData))
+    if err != nil { //忽略报错
+        return
+    }
 }
